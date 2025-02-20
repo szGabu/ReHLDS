@@ -452,6 +452,9 @@ void SV_AllocPacketEntities(client_frame_t *frame, int numents, int entLimit = M
 {
 	if (frame)
 	{
+		if(numents > entLimit)
+			numents = entLimit;
+
 #ifdef REHLDS_OPT_PEDANTIC
 		frame->entities.num_entities = numents;
 
@@ -459,9 +462,6 @@ void SV_AllocPacketEntities(client_frame_t *frame, int numents, int entLimit = M
 		if (!frame->entities.entities)
 			frame->entities.entities = (entity_state_t *)Mem_ZeroMalloc(sizeof(entity_state_t) * entLimit);
 #else // REHLDS_OPT_PEDANTIC
-		if(numents > entLimit)
-			numents = entLimit;
-
 		if (frame->entities.entities)
 			SV_ClearPacketEntities(frame);
 
