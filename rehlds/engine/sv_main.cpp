@@ -4563,7 +4563,7 @@ int SV_CreatePacketEntities_internal(sv_delta_t type, client_t *client, packet_e
 	// fix for https://github.com/dreamstalker/rehlds/issues/24
 #ifdef REHLDS_FIXES
 	int baselineToIdx = -1; //index of the baseline in to->entities[]
-	uint64 toBaselinesForceMask[MAX_PACKET_ENTITIES];
+	uint64 toBaselinesForceMask[supportsHL25Limit ? MAX_PACKET_ENTITIES : MAX_PACKET_ENTITIES_OLD];
 #endif
 
 	int num_entities_old = !supportsHL25Limit && fromframe->entities.num_entities > MAX_PACKET_ENTITIES_OLD ? MAX_PACKET_ENTITIES_OLD : fromframe->entities.num_entities;
