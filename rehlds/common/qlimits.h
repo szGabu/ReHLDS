@@ -40,6 +40,6 @@ constexpr auto MAX_LIGHTSTYLE_SIZE = size_t{64};
 
 #define MAX_EVENTS			256
 #define MAX_PACKET_ENTITIES		1024	// 256 visible entities per frame
-#define MAX_PACKET_ENTITIES_OLD 256
+#define MAX_PACKET_ENTITIES_OLD 256-1
 
 #endif // QLIMITS_H

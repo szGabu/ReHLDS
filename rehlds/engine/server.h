@@ -437,7 +437,7 @@ void SV_AllocClientFrames(void);
 qboolean SV_IsPlayerIndex(int index);
 qboolean SV_IsPlayerIndex_wrapped(int index);
 void SV_ClearPacketEntities(client_frame_t *frame);
-void SV_AllocPacketEntities(client_frame_t *frame, int numents);
+void SV_AllocPacketEntities(client_frame_t *frame, int numents, int entLimit);
 void SV_ClearFrames(client_frame_t ** frames);
 void SV_Serverinfo_f(void);
 void SV_Localinfo_f(void);

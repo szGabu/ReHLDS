@@ -448,7 +448,7 @@ void SV_ClearPacketEntities(client_frame_t *frame)
 	}
 }
 
-void SV_AllocPacketEntities(client_frame_t *frame, int numents)
+void SV_AllocPacketEntities(client_frame_t *frame, int numents, int entLimit = MAX_PACKET_ENTITIES_OLD)
 {
 	if (frame)
 	{
@@ -457,7 +457,7 @@ void SV_AllocPacketEntities(client_frame_t *frame, int numents)
 
 		// only alloc for max possible numents
 		if (!frame->entities.entities)
-			frame->entities.entities = (entity_state_t *)Mem_ZeroMalloc(sizeof(entity_state_t) * MAX_PACKET_ENTITIES);
+			frame->entities.entities = (entity_state_t *)Mem_ZeroMalloc(sizeof(entity_state_t) * entLimit);
 #else // REHLDS_OPT_PEDANTIC
 		if (frame->entities.entities)
 			SV_ClearPacketEntities(frame);
@@ -4876,7 +4876,7 @@ void SV_WriteEntitiesToClient(client_t *client, sizebuf_t *msg)
 	// for REHLDS_OPT_PEDANTIC: Allocate the MAX_PACKET_ENTITIES ents in the frame's storage
 	// This allows us to avoid intermediate 'fullpack' storage
 #ifdef REHLDS_OPT_PEDANTIC
-	SV_AllocPacketEntities(frame, client_max_ents);
+	SV_AllocPacketEntities(frame, client_max_ents, client_max_ents);
 	packet_entities_t *curPack = &frame->entities;
 	curPack->num_entities = 0;
 #else
@@ -4984,7 +4984,7 @@ void SV_WriteEntitiesToClient(client_t *client, sizebuf_t *msg)
 
 	//for REHLDS_FIXES: Entities are already in the frame's storage, no need to copy them
 #ifndef REHLDS_OPT_PEDANTIC
-	SV_AllocPacketEntities(frame, fullpack.num_entities);
+	SV_AllocPacketEntities(frame, fullpack.num_entities, client_max_ents);
 	if (pack->num_entities)
 		Q_memcpy(pack->entities, fullpack.entities, sizeof(entity_state_t) * pack->num_entities);
 #endif
