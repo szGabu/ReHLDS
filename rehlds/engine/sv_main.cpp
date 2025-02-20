@@ -4552,6 +4552,10 @@ int SV_CreatePacketEntities_internal(sv_delta_t type, client_t *client, packet_e
 	qboolean custom = FALSE;
 	int		offset;
 	int		numbase = 0;
+	bool 	supportsHL25Limit = false;
+	const char *userinfohl25 = Info_ValueForKey(client->userinfo, "_hl25");
+	if (userinfohl25[0])
+		supportsHL25Limit = true;
 
 	// fix for https://github.com/dreamstalker/rehlds/issues/24
 #ifdef REHLDS_FIXES
@@ -4570,7 +4574,7 @@ int SV_CreatePacketEntities_internal(sv_delta_t type, client_t *client, packet_e
 		oldmax = fromframe->entities.num_entities;
 
 		MSG_WriteByte(msg, svc_deltapacketentities);    // This is a delta
-		MSG_WriteShort(msg, to->num_entities);          // This is how many ents are in the new packet
+		MSG_WriteShort(msg, !supportsHL25Limit && to->num_entities > MAX_PACKET_ENTITIES_OLD ? MAX_PACKET_ENTITIES_OLD : to->num_entities);          // This is how many ents are in the new packet
 		MSG_WriteByte(msg, client->delta_sequence);     // This is the sequence # that we are updating from
 	}
 	else
@@ -4579,7 +4583,7 @@ int SV_CreatePacketEntities_internal(sv_delta_t type, client_t *client, packet_e
 		from = NULL;
 
 		MSG_WriteByte(msg, svc_packetentities);         // Just a packet update.
-		MSG_WriteShort(msg, to->num_entities);          // This is the # of entities we are sending.
+		MSG_WriteShort(msg, !supportsHL25Limit && to->num_entities > MAX_PACKET_ENTITIES_OLD ? MAX_PACKET_ENTITIES_OLD : to->num_entities);          // This is the # of entities we are sending.
 	}
 
 	newindex = 0; // index in to->entities
