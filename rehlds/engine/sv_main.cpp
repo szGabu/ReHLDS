@@ -4989,7 +4989,7 @@ void SV_WriteEntitiesToClient(client_t *client, sizebuf_t *msg)
 #ifndef REHLDS_OPT_PEDANTIC
 	SV_AllocPacketEntities(frame, fullpack.num_entities, client_max_ents);
 	if (pack->num_entities)
-		Q_memcpy(pack->entities, fullpack.entities, sizeof(entity_state_t) * pack->num_entities);
+		Q_memcpy(pack->entities, fullpack.entities, sizeof(entity_state_t) * (pack->num_entities > client_max_ents ? client_max_ents : pack->num_entities));
 #endif
 
 	SV_EmitPacketEntities(client, pack, msg);
