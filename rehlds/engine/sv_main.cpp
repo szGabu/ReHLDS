@@ -4899,7 +4899,8 @@ void SV_WriteEntitiesToClient(client_t *client, sizebuf_t *msg)
 		if ((!cl->active && !cl->spawned) || cl->proxy)
 			continue;
 
-		qboolean add = gEntityInterface.pfnAddToFullPack(&curPack->entities[curPack->num_entities], e, &g_psv.edicts[e], host_client->edict, flags, TRUE, pSet);
+		qboolean add = gEntityInterface.pfnAddToFullPack(&curPack->entities[curPack->num_entities > client_max_ents ? client_max_ents : curPack->num_entities], e, &g_psv.edicts[e], host_client->edict, flags, TRUE, pSet);
+		
 		if (add && curPack->num_entities < client_max_ents)
 			++curPack->num_entities;
 	}
@@ -4918,12 +4919,12 @@ void SV_WriteEntitiesToClient(client_t *client, sizebuf_t *msg)
 		//Part of gamedll's code is moved here to decrease amount of calls to AddToFullPack()
 		//We don't even try to transmit entities without model as well as invisible entities
 		if (ent->v.modelindex && !(ent->v.effects & EF_NODRAW)) {
-			qboolean add = gEntityInterface.pfnAddToFullPack(&curPack->entities[curPack->num_entities], e, &g_psv.edicts[e], host_client->edict, flags, FALSE, pSet);
+			qboolean add = gEntityInterface.pfnAddToFullPack(&curPack->entities[curPack->num_entities > client_max_ents ? client_max_ents : curPack->num_entities], e, &g_psv.edicts[e], host_client->edict, flags, FALSE, pSet);
 			if (add && curPack->num_entities < client_max_ents)
 				++curPack->num_entities;
 		}
 #else
-		qboolean add = gEntityInterface.pfnAddToFullPack(&curPack->entities[curPack->num_entities], e, &g_psv.edicts[e], host_client->edict, flags, FALSE, pSet);
+		qboolean add = gEntityInterface.pfnAddToFullPack(&curPack->entities[curPack->num_entities > client_max_ents ? client_max_ents : curPack->num_entities], e, &g_psv.edicts[e], host_client->edict, flags, FALSE, pSet);
 		if (add && curPack->num_entities < client_max_ents)
 			++curPack->num_entities;
 #endif //REHLDS_OPT_PEDANTIC
