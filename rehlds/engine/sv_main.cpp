@@ -4859,6 +4859,11 @@ void EXT_FUNC SV_EmitPings_internal(client_t *client, sizebuf_t *msg)
 
 void SV_WriteEntitiesToClient(client_t *client, sizebuf_t *msg)
 {
+	int client_max_ents = MAX_PACKET_ENTITIES_OLD;
+	const char *userinfohl25 = Info_ValueForKey(client->userinfo, "_hl25");
+	if (userinfohl25[0])
+		client_max_ents = MAX_PACKET_ENTITIES;
+
 	client_frame_t *frame = &client->frames[SV_UPDATE_MASK & client->netchan.outgoing_sequence];
 
 	unsigned char *pvs = NULL;
@@ -4871,7 +4876,7 @@ void SV_WriteEntitiesToClient(client_t *client, sizebuf_t *msg)
 	// for REHLDS_OPT_PEDANTIC: Allocate the MAX_PACKET_ENTITIES ents in the frame's storage
 	// This allows us to avoid intermediate 'fullpack' storage
 #ifdef REHLDS_OPT_PEDANTIC
-	SV_AllocPacketEntities(frame, MAX_PACKET_ENTITIES);
+	SV_AllocPacketEntities(frame, client_max_ents);
 	packet_entities_t *curPack = &frame->entities;
 	curPack->num_entities = 0;
 #else
@@ -4892,13 +4897,13 @@ void SV_WriteEntitiesToClient(client_t *client, sizebuf_t *msg)
 			continue;
 
 		qboolean add = gEntityInterface.pfnAddToFullPack(&curPack->entities[curPack->num_entities], e, &g_psv.edicts[e], host_client->edict, flags, TRUE, pSet);
-		if (add)
+		if (add && curPack->num_entities < client_max_ents)
 			++curPack->num_entities;
 	}
 
 	for (; e < g_psv.num_edicts; e++)
 	{
-		if (curPack->num_entities >= MAX_PACKET_ENTITIES)
+		if (curPack->num_entities >= client_max_ents)
 		{
 			Con_DPrintf("Too many entities in visible packet list.\n");
 			break;
@@ -4911,12 +4916,12 @@ void SV_WriteEntitiesToClient(client_t *client, sizebuf_t *msg)
 		//We don't even try to transmit entities without model as well as invisible entities
 		if (ent->v.modelindex && !(ent->v.effects & EF_NODRAW)) {
 			qboolean add = gEntityInterface.pfnAddToFullPack(&curPack->entities[curPack->num_entities], e, &g_psv.edicts[e], host_client->edict, flags, FALSE, pSet);
-			if (add)
+			if (add && curPack->num_entities < client_max_ents)
 				++curPack->num_entities;
 		}
 #else
 		qboolean add = gEntityInterface.pfnAddToFullPack(&curPack->entities[curPack->num_entities], e, &g_psv.edicts[e], host_client->edict, flags, FALSE, pSet);
-		if (add)
+		if (add && curPack->num_entities < client_max_ents)
 			++curPack->num_entities;
 #endif //REHLDS_OPT_PEDANTIC
 	}
