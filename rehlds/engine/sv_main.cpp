@@ -4563,6 +4563,8 @@ int SV_CreatePacketEntities_internal(sv_delta_t type, client_t *client, packet_e
 	uint64 toBaselinesForceMask[MAX_PACKET_ENTITIES];
 #endif
 
+	int num_entities_old = !supportsHL25Limit && fromframe->entities.num_entities > MAX_PACKET_ENTITIES_OLD ? MAX_PACKET_ENTITIES_OLD : fromframe->entities.num_entities;
+	int num_entities = !supportsHL25Limit && to->num_entities > MAX_PACKET_ENTITIES_OLD ? MAX_PACKET_ENTITIES_OLD : to->num_entities;
 	// See if this is a full update
 	if (type == sv_packet_delta)
 	{
@@ -4571,10 +4573,10 @@ int SV_CreatePacketEntities_internal(sv_delta_t type, client_t *client, packet_e
 		from = &fromframe->entities;
 		_mm_prefetch((const char*)&from->entities[0], _MM_HINT_T0);
 		_mm_prefetch(((const char*)&from->entities[0]) + 64, _MM_HINT_T0);
-		oldmax = fromframe->entities.num_entities;
+		oldmax = num_entities_old;
 
 		MSG_WriteByte(msg, svc_deltapacketentities);    // This is a delta
-		MSG_WriteShort(msg, !supportsHL25Limit && to->num_entities > MAX_PACKET_ENTITIES_OLD ? MAX_PACKET_ENTITIES_OLD : to->num_entities);          // This is how many ents are in the new packet
+		MSG_WriteShort(msg, num_entities);          // This is how many ents are in the new packet
 		MSG_WriteByte(msg, client->delta_sequence);     // This is the sequence # that we are updating from
 	}
 	else
@@ -4583,7 +4585,7 @@ int SV_CreatePacketEntities_internal(sv_delta_t type, client_t *client, packet_e
 		from = NULL;
 
 		MSG_WriteByte(msg, svc_packetentities);         // Just a packet update.
-		MSG_WriteShort(msg, !supportsHL25Limit && to->num_entities > MAX_PACKET_ENTITIES_OLD ? MAX_PACKET_ENTITIES_OLD : to->num_entities);          // This is the # of entities we are sending.
+		MSG_WriteShort(msg, num_entities);          // This is the # of entities we are sending.
 	}
 
 	newindex = 0; // index in to->entities
@@ -4591,9 +4593,9 @@ int SV_CreatePacketEntities_internal(sv_delta_t type, client_t *client, packet_e
 
 	MSG_StartBitWriting(msg);
 
-	while (newindex < to->num_entities || oldindex < oldmax)
+	while (newindex < num_entities || oldindex < oldmax)
 	{
-		newnum = (newindex >= to->num_entities) ? ENTITY_SENTINEL : to->entities[newindex].number;
+		newnum = (newindex >= num_entities) ? ENTITY_SENTINEL : to->entities[newindex].number;
 		oldnum = (!from || oldindex >= oldmax)  ? ENTITY_SENTINEL : from->entities[oldindex].number; // FIXED: from can be null
 
 		// this is a delta update of the entity from old position
